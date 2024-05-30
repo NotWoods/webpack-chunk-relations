@@ -1,0 +1,13 @@
+{
+  "name": "webpack-chunk-relations",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "stats-types": "json2ts ./stats-schema.json > ./stats.d.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "json-schema-to-typescript": "^14.0.4"
+  }
+}
