@@ -21,10 +21,9 @@ function updateStatus(text) {
  * @returns
  */
 function chart(data, options = {}) {
-  const { nodes, links } = data;
   // Specify the dimensions of the chart.
   const width = 928;
-  const height = 680;
+  const height = Math.floor(width * 0.9);
 
   // Specify the color scale.
   const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -33,83 +32,45 @@ function chart(data, options = {}) {
   const simulation = createSimulation(data);
 
   // Create the SVG container.
-  const svg = d3
-    .create("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [-width / 2, -height / 2, width, height])
-    .attr("style", "max-width: 100%; height: auto;");
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  canvas.style = `width:${width}px;max-width: 100%; height: auto;`;
 
-  // Add a line for each link, and a circle for each node.
-  const link = svg
-    .append("g")
-    .attr("stroke", "#999")
-    .attr("stroke-opacity", 0.6)
-    .selectAll("line")
-    .data(links)
-    .join("line")
-    .attr("stroke-width", (d) => Math.sqrt(d.value));
+  function ticked(data) {
+    context.clearRect(0, 0, width, height);
+    context.save();
+    context.translate(width / 2, height / 2);
 
-  const node = svg
-    .append("g")
-    .attr("stroke", "#fff")
-    .attr("stroke-width", 1.5)
-    .selectAll("circle")
-    .data(nodes)
-    .join("circle")
-    .attr("r", 5)
-    .attr("fill", (d) => color(d.group));
+    context.beginPath();
+    for (const c of data.links) {
+      context.moveTo(c.source.x, c.source.y);
+      context.lineTo(c.target.x, c.target.y);
+    }
+    context.lineWidth = 0.5;
+    context.stroke();
 
-  node.append("title").text((d) => d.id);
+    context.beginPath();
+    for (const c of data.nodes) {
+      context.moveTo(c.x, c.y);
+      context.arc(c.x, c.y, 2, 0, 2 * Math.PI);
+    }
+    context.fillStyle = "#000";
+    context.fill();
+
+    context.restore();
+  }
+  ticked(data);
 
   if (options.interactive) {
     simulation.restart();
-
-    // Add a drag behavior.
-    node.call(
-      d3
-        .drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended)
-    );
-
-    // Set the position attributes of links and nodes each time the simulation ticks.
     simulation.on("tick", () => {
-      link
-        .attr("x1", (d) => d.source.x)
-        .attr("y1", (d) => d.source.y)
-        .attr("x2", (d) => d.target.x)
-        .attr("y2", (d) => d.target.y);
-
-      node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+      ticked(data);
     });
-
-    // Reheat the simulation when drag starts, and fix the subject position.
-    function dragstarted(event) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      event.subject.fx = event.subject.x;
-      event.subject.fy = event.subject.y;
-    }
-
-    // Update the subject (dragged node) position during drag.
-    function dragged(event) {
-      event.subject.fx = event.x;
-      event.subject.fy = event.y;
-    }
-
-    // Restore the target alpha so the simulation cools after dragging ends.
-    // Unfix the subject position now that it’s no longer being dragged.
-    function dragended(event) {
-      if (!event.active) simulation.alphaTarget(0);
-      event.subject.fx = null;
-      event.subject.fy = null;
-    }
   }
 
   stopOnAbort(options.invalidation, simulation);
 
-  return svg.node();
+  return canvas;
 }
 
 const worker = new Worker(new URL("./worker.js", import.meta.url), {
