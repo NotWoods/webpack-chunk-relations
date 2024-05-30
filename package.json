@@ -2,18 +2,27 @@
   "name": "webpack-chunk-relations",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
-    "stats-types": "json2ts ./stats-schema.json > ./stats.d.ts"
+    "stats-types": "json2ts ./stats-schema.json > ./stats.d.ts",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "@types/d3-force": "^3.0.9",
-    "json-schema-to-typescript": "^14.0.4"
+    "json-schema-to-typescript": "^14.0.4",
+    "vite": "^5.2.12"
   },
   "dependencies": {
     "d3": "^7.9.0",
-    "d3-force": "^3.0.0"
+    "d3-force": "^3.0.0",
+    "idb-keyval": "^6.2.1",
+    "readable-stream": "^4.5.2",
+    "stream-chain": "^2.2.5",
+    "stream-json": "^1.8.0"
   }
 }
